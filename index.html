@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cineplex Universe - Book Your Tickets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0c111b; /* A deeper, cinematic dark blue */
+        }
+        /* Custom styles for the cinema screen */
+        .screen {
+            background-color: #4A5568;
+            height: 100px;
+            width: 75%;
+            margin: 20px auto;
+            transform: perspective(500px) rotateX(-45deg);
+            box-shadow: 0 3px 15px rgba(255, 255, 255, 0.6);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        /* Style for individual seats */
+        .seat {
+            background-color: #444451;
+            height: 24px;
+            width: 30px;
+            margin: 4px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            transition: transform 0.2s, background-color 0.2s;
+            cursor: pointer;
+        }
+        @media (max-width: 640px) {
+            .seat {
+                height: 20px;
+                width: 25px;
+                margin: 3px;
+            }
+        }
+        /* Add a small gap between seat rows for realism */
+        .seat-row .seat:nth-child(2), .seat-row .seat:nth-child(6) {
+            margin-right: 18px;
+        }
+         @media (max-width: 640px) {
+            .seat-row .seat:nth-child(2), .seat-row .seat:nth-child(6) {
+                margin-right: 10px;
+            }
+        }
+        /* Style for selected seats */
+        .seat.selected {
+            background-color: #8b5cf6; /* Vibrant Violet */
+            transform: scale(1.1);
+        }
+        /* Style for sold seats */
+        .seat.sold {
+            background-color: #991B1B; /* Red */
+            cursor: not-allowed;
+        }
+        /* Hover effect for available seats */
+        .seat:not(.sold):hover {
+            transform: scale(1.1);
+            background-color: #6b7280;
+        }
+        /* Smooth transition for movie posters */
+        .movie-card img {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        /* Hover effect for movie posters */
+        .movie-card:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(167, 139, 250, 0.4);
+        }
+        .showtime-btn {
+            transition: background-color 0.2s, color 0.2s;
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <div id="app" class="container mx-auto p-4 md:p-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl sm:text-5xl font-bold text-violet-400 tracking-wider">Cineplex Universe</h1>
+            <p class="text-lg text-gray-400 mt-2">Your Ultimate Movie Destination</p>
+        </header>
+
+        <!-- Movie Selection Section -->
+        <section id="movie-selection" class="mb-12">
+            <h2 class="text-3xl font-semibold mb-8 text-center">Now Playing</h2>
+            <div id="movie-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                <!-- Movie items will be injected here by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Seating & Booking Section (Initially Hidden) -->
+        <section id="booking-section" class="hidden">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Left side: Seating Chart -->
+                <div class="w-full lg:w-2/3">
+                    <button id="back-to-movies" class="mb-4 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                        &larr; Back to Movies
+                    </button>
+                    <h2 id="selected-movie-title" class="text-3xl font-semibold mb-1"></h2>
+                    <p id="selected-movie-showtime" class="text-lg text-violet-300 mb-6"></p>
+
+                    <div class="bg-gray-900 p-4 sm:p-6 rounded-lg shadow-lg">
+                        <div class="screen" aria-hidden="true"></div>
+                         <div class="overflow-x-auto">
+                            <div id="seat-map" class="flex flex-col items-center mt-8 w-max mx-auto">
+                                <!-- Seat rows will be generated here by JavaScript -->
+                            </div>
+                        </div>
+                        <div class="flex justify-center items-center flex-wrap space-x-4 sm:space-x-6 mt-6 text-sm text-gray-400">
+                            <div class="flex items-center"><div class="seat w-4 h-4 mr-2"></div> Available</div>
+                            <div class="flex items-center"><div class="seat selected w-4 h-4 mr-2"></div> Selected</div>
+                            <div class="flex items-center"><div class="seat sold w-4 h-4 mr-2"></div> Sold</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right side: Booking Summary -->
+                <div class="w-full lg:w-1/3">
+                    <div class="bg-gray-900 p-6 rounded-lg shadow-lg sticky top-8">
+                        <h3 class="text-2xl font-semibold border-b border-gray-700 pb-4 mb-4">Your Selection</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-lg" id="summary-movie-title">Select a Movie & Showtime</h4>
+                                <p class="text-sm text-gray-400" id="summary-movie-showtime">Showtime</p>
+                            </div>
+                            <div id="selected-seats-list" class="text-lg">
+                                Seats: <span class="font-semibold">None</span>
+                            </div>
+                            <div class="text-lg">
+                                Total Price: <span id="total-price" class="font-semibold">$0</span>
+                            </div>
+                        </div>
+                        <button id="book-now-btn" class="mt-6 w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>
+                            Book Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Confirmation Modal (Initially Hidden) -->
+        <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50 p-4">
+            <div class="bg-gray-800 rounded-lg shadow-2xl p-8 max-w-md w-full text-center">
+                <h2 class="text-3xl font-bold text-violet-400 mb-4">Booking Confirmed!</h2>
+                <p class="text-gray-300 mb-6">Thank you! Your tickets have been reserved.</p>
+                <p class="mb-2"><strong>Movie:</strong> <span id="conf-movie"></span></p>
+                 <p class="mb-2"><strong>Showtime:</strong> <span id="conf-showtime"></span></p>
+                <p class="mb-2"><strong>Seats:</strong> <span id="conf-seats"></span></p>
+                <p class="mb-6"><strong>Total:</strong> <span id="conf-total"></span></p>
+                <button id="close-modal-btn" class="bg-violet-600 hover:bg-violet-500 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                    Awesome!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = {
+                movies: [
+                    { id: 1, title: 'Dune: Part Two', price: 12, genre: 'Sci-Fi, Adventure', rating: 'PG-13', duration: '2h 46m', poster: 'https://image.tmdb.org/t/p/w500/1jwo11yA6F90A6gPliy1VwD4Ffd.jpg', showtimes: ['17:00', '20:00', '21:30'] },
+                    { id: 2, title: 'Godzilla x Kong', price: 11, genre: 'Action, Sci-Fi', rating: 'PG-13', duration: '1h 55m', poster: 'https://image.tmdb.org/t/p/w500/tMefBSM6xBOIsXLZDb8VlAyoMjG.jpg', showtimes: ['18:00', '20:30', '22:00'] },
+                    { id: 3, title: 'Kung Fu Panda 4', price: 10, genre: 'Animation, Family', rating: 'PG', duration: '1h 34m', poster: 'https://image.tmdb.org/t/p/w500/kDp1vUB0mnY3OOFdInv2C0I9GOA.jpg', showtimes: ['16:00', '18:15', '19:45'] },
+                    { id: 4, title: 'The Fall Guy', price: 12, genre: 'Action, Comedy', rating: 'PG-13', duration: '2h 6m', poster: 'https://image.tmdb.org/t/p/w500/aBkqu7gV2M2qf3Z6iFflYAHf9kY.jpg', showtimes: ['17:30', '19:00', '21:15'] },
+                    { id: 5, title: 'Planet of the Apes', price: 13, genre: 'Sci-Fi, Action', rating: 'PG-13', duration: '2h 25m', poster: 'https://image.tmdb.org/t/p/w500/gKkl37BQuKTanygYQG1pyYgLVgf.jpg', showtimes: ['16:45', '19:30', '22:15'] },
+                    { id: 6, title: 'IF', price: 10, genre: 'Comedy, Family', rating: 'PG', duration: '1h 44m', poster: 'https://image.tmdb.org/t/p/w500/zjkDnaL3a5aJ0E3n3X3gdr0oD4I.jpg', showtimes: ['16:30', '18:45'] },
+                    { id: 7, title: 'Inside Out 2', price: 14, genre: 'Animation, Family', rating: 'PG', duration: '1h 40m', poster: 'https://image.tmdb.org/t/p/w500/vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg', showtimes: ['17:15', '19:15', '21:00'] },
+                    { id: 8, title: 'Furiosa', price: 13, genre: 'Action, Sci-Fi', rating: 'R', duration: '2h 28m', poster: 'https://image.tmdb.org/t/p/w500/iADOJ8Zymht2iPMreqPEDr5Mcjx.jpg', showtimes: ['17:00', '20:15', '22:30'] }
+                ],
+                soldSeats: {}, // E.g., { '1-17:00': ['A1', 'B5'], '2-20:30': ['C4'] }
+                selectedMovie: null,
+                selectedShowtime: null,
+                selectedSeats: [],
+
+                elements: {
+                    movieGrid: document.getElementById('movie-grid'),
+                    movieSelectionSection: document.getElementById('movie-selection'),
+                    bookingSection: document.getElementById('booking-section'),
+                    seatMap: document.getElementById('seat-map'),
+                    selectedMovieTitle: document.getElementById('selected-movie-title'),
+                    selectedMovieShowtime: document.getElementById('selected-movie-showtime'),
+                    selectedSeatsList: document.getElementById('selected-seats-list').querySelector('span'),
+                    totalPrice: document.getElementById('total-price'),
+                    bookNowBtn: document.getElementById('book-now-btn'),
+                    backToMoviesBtn: document.getElementById('back-to-movies'),
+                    summaryMovieTitle: document.getElementById('summary-movie-title'),
+                    summaryMovieShowtime: document.getElementById('summary-movie-showtime'),
+                    confirmationModal: document.getElementById('confirmation-modal'),
+                    confMovie: document.getElementById('conf-movie'),
+                    confShowtime: document.getElementById('conf-showtime'),
+                    confSeats: document.getElementById('conf-seats'),
+                    confTotal: document.getElementById('conf-total'),
+                    closeModalBtn: document.getElementById('close-modal-btn'),
+                },
+
+                init() {
+                    this.renderMovies();
+                    this.addEventListeners();
+                },
+
+                renderMovies() {
+                    this.elements.movieGrid.innerHTML = this.movies.map(movie => `
+                        <div class="movie-card bg-gray-900 rounded-lg shadow-lg overflow-hidden flex flex-col">
+                            <img src="${movie.poster}" alt="${movie.title}" class="w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/500x750/1f2937/a78bfa?text=${encodeURIComponent(movie.title)}';">
+                            <div class="p-4 flex flex-col flex-grow">
+                                <h3 class="text-xl font-semibold text-white">${movie.title}</h3>
+                                <div class="text-sm text-gray-400 mt-1 flex-grow">
+                                    <span>${movie.rating}</span> | <span>${movie.duration}</span> | <span>${movie.genre}</span>
+                                </div>
+                                <div class="mt-4">
+                                    <p class="text-gray-300 font-medium mb-2">Showtimes:</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        ${movie.showtimes.map(time => `<button class="showtime-btn border border-violet-400 text-violet-300 py-1 px-3 rounded hover:bg-violet-500 hover:text-white" data-movie-id="${movie.id}" data-showtime="${time}">${time}</button>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                },
+
+                renderSeatingChart() {
+                    const rows = 6;
+                    const seatsPerRow = 8;
+                    const seatMapKey = `${this.selectedMovie.id}-${this.selectedShowtime}`;
+                    const currentlySoldSeats = this.soldSeats[seatMapKey] || [];
+                    this.elements.seatMap.innerHTML = ''; 
+
+                    for (let i = 0; i < rows; i++) {
+                        const row = document.createElement('div');
+                        row.className = 'seat-row flex';
+                        for (let j = 0; j < seatsPerRow; j++) {
+                            const seat = document.createElement('div');
+                            const seatId = `${String.fromCharCode(65 + i)}${j + 1}`;
+                            seat.className = 'seat';
+                            seat.dataset.seatId = seatId;
+                            if (currentlySoldSeats.includes(seatId)) {
+                                seat.classList.add('sold');
+                            }
+                            row.appendChild(seat);
+                        }
+                        this.elements.seatMap.appendChild(row);
+                    }
+                },
+
+                addEventListeners() {
+                    this.elements.movieGrid.addEventListener('click', e => {
+                        if (e.target.classList.contains('showtime-btn')) {
+                            const movieId = parseInt(e.target.dataset.movieId);
+                            const showtime = e.target.dataset.showtime;
+                            this.handleShowtimeSelect(movieId, showtime);
+                        }
+                    });
+
+                    this.elements.seatMap.addEventListener('click', e => {
+                        const seatEl = e.target.closest('.seat');
+                        if (seatEl && !seatEl.classList.contains('sold')) {
+                            this.handleSeatSelect(seatEl);
+                        }
+                    });
+
+                    this.elements.backToMoviesBtn.addEventListener('click', () => this.showMovieSelection());
+                    this.elements.bookNowBtn.addEventListener('click', () => this.handleBooking());
+                    this.elements.closeModalBtn.addEventListener('click', () => this.closeConfirmationModal());
+                },
+
+                handleShowtimeSelect(movieId, showtime) {
+                    this.selectedMovie = this.movies.find(m => m.id === movieId);
+                    this.selectedShowtime = showtime;
+                    this.selectedSeats = []; 
+                    
+                    this.elements.selectedMovieTitle.textContent = this.selectedMovie.title;
+                    this.elements.selectedMovieShowtime.textContent = `Showtime: ${this.selectedShowtime}`;
+                    this.elements.summaryMovieTitle.textContent = this.selectedMovie.title;
+                    this.elements.summaryMovieShowtime.textContent = `at ${this.selectedShowtime}`;
+                    
+                    this.renderSeatingChart();
+                    this.updateBookingSummary();
+                    this.showBookingSection();
+                },
+                
+                handleSeatSelect(seatEl) {
+                    const seatId = seatEl.dataset.seatId;
+                    const seatIndex = this.selectedSeats.indexOf(seatId);
+
+                    if (seatIndex > -1) {
+                        this.selectedSeats.splice(seatIndex, 1);
+                        seatEl.classList.remove('selected');
+                    } else {
+                        this.selectedSeats.push(seatId);
+                        seatEl.classList.add('selected');
+                    }
+                    this.updateBookingSummary();
+                },
+
+                handleBooking() {
+                    if (this.selectedSeats.length === 0) return;
+                    
+                    const seatMapKey = `${this.selectedMovie.id}-${this.selectedShowtime}`;
+                    if (!this.soldSeats[seatMapKey]) {
+                        this.soldSeats[seatMapKey] = [];
+                    }
+                    this.soldSeats[seatMapKey].push(...this.selectedSeats);
+
+                    this.elements.confMovie.textContent = this.selectedMovie.title;
+                    this.elements.confShowtime.textContent = this.selectedShowtime;
+                    this.elements.confSeats.textContent = this.selectedSeats.join(', ');
+                    this.elements.confTotal.textContent = `$${this.selectedSeats.length * this.selectedMovie.price}`;
+                    
+                    this.elements.confirmationModal.classList.remove('hidden');
+
+                    this.selectedSeats.forEach(seatId => {
+                        const seatEl = this.elements.seatMap.querySelector(`[data-seat-id="${seatId}"]`);
+                        if (seatEl) {
+                            seatEl.classList.remove('selected');
+                            seatEl.classList.add('sold');
+                        }
+                    });
+
+                    this.selectedSeats = [];
+                    this.updateBookingSummary();
+                },
+
+                updateBookingSummary() {
+                    if (this.selectedSeats.length > 0) {
+                        this.elements.selectedSeatsList.textContent = this.selectedSeats.sort().join(', ');
+                        this.elements.bookNowBtn.disabled = false;
+                    } else {
+                        this.elements.selectedSeatsList.textContent = 'None';
+                        this.elements.bookNowBtn.disabled = true;
+                    }
+                    const total = this.selectedSeats.length * this.selectedMovie.price;
+                    this.elements.totalPrice.textContent = `$${total}`;
+                },
+
+                showMovieSelection() {
+                    this.elements.movieSelectionSection.classList.remove('hidden');
+                    this.elements.bookingSection.classList.add('hidden');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+
+                showBookingSection() {
+                    this.elements.movieSelectionSection.classList.add('hidden');
+                    this.elements.bookingSection.classList.remove('hidden');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+                
+                closeConfirmationModal() {
+                    this.elements.confirmationModal.classList.add('hidden');
+                }
+            };
+
+            app.init();
+        });
+    </script>
+</body>
+</html>
