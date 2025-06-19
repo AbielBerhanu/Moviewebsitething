@@ -1,363 +1,525 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cineplex Universe - Book Your Tickets</title>
+    <title>AskUs STEM Pathways - Coding Education for All</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0c111b; /* A deeper, cinematic dark blue */
         }
-        /* Custom styles for the cinema screen */
-        .screen {
-            background-color: #4A5568;
-            height: 100px;
-            width: 75%;
-            margin: 20px auto;
-            transform: perspective(500px) rotateX(-45deg);
-            box-shadow: 0 3px 15px rgba(255, 255, 255, 0.6);
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
+        .hero-bg {
+            background-color: #F0F4F8;
+            background-image: radial-gradient(#DDE4EB 1px, transparent 1px);
+            background-size: 20px 20px;
         }
-        /* Style for individual seats */
-        .seat {
-            background-color: #444451;
-            height: 24px;
-            width: 30px;
-            margin: 4px;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            transition: transform 0.2s, background-color 0.2s;
-            cursor: pointer;
+        .cta-button {
+            transition: all 0.3s ease;
         }
-        @media (max-width: 640px) {
-            .seat {
-                height: 20px;
-                width: 25px;
-                margin: 3px;
-            }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        /* Add a small gap between seat rows for realism */
-        .seat-row .seat:nth-child(2), .seat-row .seat:nth-child(6) {
-            margin-right: 18px;
+        .testimonial-card {
+             background: #F9FAFB;
+             border-left: 4px solid #4F46E5;
         }
-         @media (max-width: 640px) {
-            .seat-row .seat:nth-child(2), .seat-row .seat:nth-child(6) {
-                margin-right: 10px;
-            }
-        }
-        /* Style for selected seats */
-        .seat.selected {
-            background-color: #8b5cf6; /* Vibrant Violet */
-            transform: scale(1.1);
-        }
-        /* Style for sold seats */
-        .seat.sold {
-            background-color: #991B1B; /* Red */
-            cursor: not-allowed;
-        }
-        /* Hover effect for available seats */
-        .seat:not(.sold):hover {
-            transform: scale(1.1);
-            background-color: #6b7280;
-        }
-        /* Smooth transition for movie posters */
-        .movie-card img {
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-        }
-        /* Hover effect for movie posters */
-        .movie-card:hover img {
-            transform: scale(1.05);
-            box-shadow: 0 10px 25px rgba(167, 139, 250, 0.4);
-        }
-        .showtime-btn {
-            transition: background-color 0.2s, color 0.2s;
+        .founder-img {
+            width: 128px;
+            height: 128px;
+            object-fit: cover;
         }
     </style>
 </head>
-<body class="text-gray-200">
+<body class="bg-white text-gray-800">
 
-    <div id="app" class="container mx-auto p-4 md:p-8">
-        <!-- Header -->
-        <header class="text-center mb-12">
-            <h1 class="text-4xl sm:text-5xl font-bold text-violet-400 tracking-wider">Cineplex Universe</h1>
-            <p class="text-lg text-gray-400 mt-2">Your Ultimate Movie Destination</p>
-        </header>
-
-        <!-- Movie Selection Section -->
-        <section id="movie-selection" class="mb-12">
-            <h2 class="text-3xl font-semibold mb-8 text-center">Now Playing</h2>
-            <div id="movie-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                <!-- Movie items will be injected here by JavaScript -->
-            </div>
-        </section>
-
-        <!-- Seating & Booking Section (Initially Hidden) -->
-        <section id="booking-section" class="hidden">
-            <div class="flex flex-col lg:flex-row gap-8">
-                <!-- Left side: Seating Chart -->
-                <div class="w-full lg:w-2/3">
-                    <button id="back-to-movies" class="mb-4 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                        &larr; Back to Movies
-                    </button>
-                    <h2 id="selected-movie-title" class="text-3xl font-semibold mb-1"></h2>
-                    <p id="selected-movie-showtime" class="text-lg text-violet-300 mb-6"></p>
-
-                    <div class="bg-gray-900 p-4 sm:p-6 rounded-lg shadow-lg">
-                        <div class="screen" aria-hidden="true"></div>
-                         <div class="overflow-x-auto">
-                            <div id="seat-map" class="flex flex-col items-center mt-8 w-max mx-auto">
-                                <!-- Seat rows will be generated here by JavaScript -->
-                            </div>
-                        </div>
-                        <div class="flex justify-center items-center flex-wrap space-x-4 sm:space-x-6 mt-6 text-sm text-gray-400">
-                            <div class="flex items-center"><div class="seat w-4 h-4 mr-2"></div> Available</div>
-                            <div class="flex items-center"><div class="seat selected w-4 h-4 mr-2"></div> Selected</div>
-                            <div class="flex items-center"><div class="seat sold w-4 h-4 mr-2"></div> Sold</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right side: Booking Summary -->
-                <div class="w-full lg:w-1/3">
-                    <div class="bg-gray-900 p-6 rounded-lg shadow-lg sticky top-8">
-                        <h3 class="text-2xl font-semibold border-b border-gray-700 pb-4 mb-4">Your Selection</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <h4 class="font-bold text-lg" id="summary-movie-title">Select a Movie & Showtime</h4>
-                                <p class="text-sm text-gray-400" id="summary-movie-showtime">Showtime</p>
-                            </div>
-                            <div id="selected-seats-list" class="text-lg">
-                                Seats: <span class="font-semibold">None</span>
-                            </div>
-                            <div class="text-lg">
-                                Total Price: <span id="total-price" class="font-semibold">$0</span>
-                            </div>
-                        </div>
-                        <button id="book-now-btn" class="mt-6 w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>
-                            Book Now
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Confirmation Modal (Initially Hidden) -->
-        <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50 p-4">
-            <div class="bg-gray-800 rounded-lg shadow-2xl p-8 max-w-md w-full text-center">
-                <h2 class="text-3xl font-bold text-violet-400 mb-4">Booking Confirmed!</h2>
-                <p class="text-gray-300 mb-6">Thank you! Your tickets have been reserved.</p>
-                <p class="mb-2"><strong>Movie:</strong> <span id="conf-movie"></span></p>
-                 <p class="mb-2"><strong>Showtime:</strong> <span id="conf-showtime"></span></p>
-                <p class="mb-2"><strong>Seats:</strong> <span id="conf-seats"></span></p>
-                <p class="mb-6"><strong>Total:</strong> <span id="conf-total"></span></p>
-                <button id="close-modal-btn" class="bg-violet-600 hover:bg-violet-500 text-white font-bold py-2 px-6 rounded-lg transition-colors">
-                    Awesome!
+    <!-- Header & Navigation -->
+    <header class="bg-white/80 backdrop-blur-lg fixed top-0 left-0 right-0 z-50 shadow-sm">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <a href="#home" class="flex items-center space-x-2">
+                    <i class="fas fa-code text-2xl text-indigo-600"></i>
+                    <span class="text-xl font-bold text-gray-900">AskUs STEM</span>
+                </a>
+                <nav class="hidden lg:flex items-center space-x-6">
+                    <a href="#about" class="text-gray-600 hover:text-indigo-600">About</a>
+                    <a href="#courses" class="text-gray-600 hover:text-indigo-600">Courses</a>
+                    <a href="#events" class="text-gray-600 hover:text-indigo-600">Events</a>
+                    <a href="#community" class="text-gray-600 hover:text-indigo-600">Community</a>
+                    <a href="#resources" class="text-gray-600 hover:text-indigo-600">Resources</a>
+                    <a href="#blog" class="text-gray-600 hover:text-indigo-600">Blog</a>
+                    <a href="#contact" class="text-gray-600 hover:text-indigo-600">Contact</a>
+                    <a href="#donate" class="bg-indigo-600 text-white px-4 py-2 rounded-full font-semibold cta-button">Donate</a>
+                </nav>
+                <button id="mobile-menu-button" class="lg:hidden text-gray-800">
+                    <i class="fas fa-bars text-2xl"></i>
                 </button>
             </div>
         </div>
-    </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden lg:hidden px-6 pb-4 space-y-2 bg-white">
+            <a href="#about" class="block text-gray-600 hover:text-indigo-600 py-2">About</a>
+            <a href="#courses" class="block text-gray-600 hover:text-indigo-600 py-2">Courses</a>
+            <a href="#events" class="block text-gray-600 hover:text-indigo-600 py-2">Events</a>
+            <a href="#community" class="block text-gray-600 hover:text-indigo-600 py-2">Community</a>
+            <a href="#resources" class="block text-gray-600 hover:text-indigo-600 py-2">Resources</a>
+            <a href="#blog" class="block text-gray-600 hover:text-indigo-600 py-2">Blog</a>
+            <a href="#volunteer" class="block text-gray-600 hover:text-indigo-600 py-2">Volunteer</a>
+            <a href="#contact" class="block text-gray-600 hover:text-indigo-600 py-2">Contact</a>
+            <a href="#donate" class="block bg-indigo-600 text-white text-center mt-2 px-4 py-2 rounded-full font-semibold cta-button">Donate</a>
+        </div>
+    </header>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const app = {
-                movies: [
-                    { id: 1, title: 'Dune: Part Two', price: 12, genre: 'Sci-Fi, Adventure', rating: 'PG-13', duration: '2h 46m', poster: 'https://image.tmdb.org/t/p/w500/1jwo11yA6F90A6gPliy1VwD4Ffd.jpg', showtimes: ['17:00', '20:00', '21:30'] },
-                    { id: 2, title: 'Godzilla x Kong', price: 11, genre: 'Action, Sci-Fi', rating: 'PG-13', duration: '1h 55m', poster: 'https://image.tmdb.org/t/p/w500/tMefBSM6xBOIsXLZDb8VlAyoMjG.jpg', showtimes: ['18:00', '20:30', '22:00'] },
-                    { id: 3, title: 'Kung Fu Panda 4', price: 10, genre: 'Animation, Family', rating: 'PG', duration: '1h 34m', poster: 'https://image.tmdb.org/t/p/w500/kDp1vUB0mnY3OOFdInv2C0I9GOA.jpg', showtimes: ['16:00', '18:15', '19:45'] },
-                    { id: 4, title: 'The Fall Guy', price: 12, genre: 'Action, Comedy', rating: 'PG-13', duration: '2h 6m', poster: 'https://image.tmdb.org/t/p/w500/aBkqu7gV2M2qf3Z6iFflYAHf9kY.jpg', showtimes: ['17:30', '19:00', '21:15'] },
-                    { id: 5, title: 'Planet of the Apes', price: 13, genre: 'Sci-Fi, Action', rating: 'PG-13', duration: '2h 25m', poster: 'https://image.tmdb.org/t/p/w500/gKkl37BQuKTanygYQG1pyYgLVgf.jpg', showtimes: ['16:45', '19:30', '22:15'] },
-                    { id: 6, title: 'IF', price: 10, genre: 'Comedy, Family', rating: 'PG', duration: '1h 44m', poster: 'https://image.tmdb.org/t/p/w500/zjkDnaL3a5aJ0E3n3X3gdr0oD4I.jpg', showtimes: ['16:30', '18:45'] },
-                    { id: 7, title: 'Inside Out 2', price: 14, genre: 'Animation, Family', rating: 'PG', duration: '1h 40m', poster: 'https://image.tmdb.org/t/p/w500/vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg', showtimes: ['17:15', '19:15', '21:00'] },
-                    { id: 8, title: 'Furiosa', price: 13, genre: 'Action, Sci-Fi', rating: 'R', duration: '2h 28m', poster: 'https://image.tmdb.org/t/p/w500/iADOJ8Zymht2iPMreqPEDr5Mcjx.jpg', showtimes: ['17:00', '20:15', '22:30'] }
-                ],
-                soldSeats: {}, // E.g., { '1-17:00': ['A1', 'B5'], '2-20:30': ['C4'] }
-                selectedMovie: null,
-                selectedShowtime: null,
-                selectedSeats: [],
+    <main>
+        <!-- Home/Hero Section -->
+        <section id="home" class="hero-bg pt-32 pb-20">
+            <div class="container mx-auto px-6 text-center">
+                <div class="mb-6 flex justify-center items-center flex-col">
+                     <p class="text-lg font-semibold text-gray-600 mb-2">Proudly Backed By</p>
+                    <img src="https://i.postimg.cc/V6RB0qzC/purepng-com-microsoft-logologobrand-logoiconslogos-251519939132du80p.png" alt="Microsoft Logo" class="h-12">
+                </div>
+                <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight">Unlock Your Future with Code.</h1>
+                <p class="mt-4 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Welcome to AskUs STEM Pathways, where we provide accessible, inclusive, and empowering coding education for learners of all ages and backgrounds.</p>
+                <div class="mt-8 flex justify-center space-x-4">
+                    <a href="#courses" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold text-lg cta-button">Explore Courses</a>
+                    <a href="#volunteer" class="bg-white text-indigo-600 border border-indigo-600 px-8 py-3 rounded-full font-bold text-lg cta-button">Get Involved</a>
+                </div>
+                <div class="mt-16">
+                    <img src="https://placehold.co/1000x500/E9D8FD/4F46E5?text=Inspiring+the+Next+Generation+of+Innovators" alt="Diverse group of students learning to code" class="mx-auto rounded-xl shadow-2xl w-full max-w-5xl">
+                </div>
+            </div>
+        </section>
 
-                elements: {
-                    movieGrid: document.getElementById('movie-grid'),
-                    movieSelectionSection: document.getElementById('movie-selection'),
-                    bookingSection: document.getElementById('booking-section'),
-                    seatMap: document.getElementById('seat-map'),
-                    selectedMovieTitle: document.getElementById('selected-movie-title'),
-                    selectedMovieShowtime: document.getElementById('selected-movie-showtime'),
-                    selectedSeatsList: document.getElementById('selected-seats-list').querySelector('span'),
-                    totalPrice: document.getElementById('total-price'),
-                    bookNowBtn: document.getElementById('book-now-btn'),
-                    backToMoviesBtn: document.getElementById('back-to-movies'),
-                    summaryMovieTitle: document.getElementById('summary-movie-title'),
-                    summaryMovieShowtime: document.getElementById('summary-movie-showtime'),
-                    confirmationModal: document.getElementById('confirmation-modal'),
-                    confMovie: document.getElementById('conf-movie'),
-                    confShowtime: document.getElementById('conf-showtime'),
-                    confSeats: document.getElementById('conf-seats'),
-                    confTotal: document.getElementById('conf-total'),
-                    closeModalBtn: document.getElementById('close-modal-btn'),
-                },
+        <!-- About Us Section -->
+        <section id="about" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Our Mission: Code for All</h2>
+                        <p class="text-gray-600 mb-4">At AskUs STEM Pathways, we believe that technology education is a fundamental right. Our mission is to break down barriers and create a world where anyone, regardless of their background, can learn to code, innovate, and build a better future.</p>
+                        <p class="text-gray-600 mb-6">We are committed to fostering a diverse and inclusive community, providing high-quality resources, mentorship, and a supportive environment to help our learners thrive.</p>
+                        <a href="#" class="text-indigo-600 font-semibold hover:underline">Learn more about our impact <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                    <div>
+                        <img src="https://placehold.co/600x400/C7D2FE/4F46E5?text=Collaborative+Learning+Environment" alt="A mentor helping a student with code" class="rounded-xl shadow-lg">
+                    </div>
+                </div>
+                <!-- Our Team Subsection -->
+                <div class="mt-20">
+                    <h3 class="text-2xl font-bold text-center text-gray-900 mb-12">Meet Our Founders</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center max-w-4xl mx-auto">
+                        <div class="space-y-3">
+                            <img class="founder-img mx-auto rounded-full shadow-md" src="https://placehold.co/128x128/E0E7FF/4338CA?text=DK" alt="Photo of Dagem Kebede">
+                            <h4 class="text-lg font-bold">Dagem Kebede</h4>
+                            <p class="text-indigo-600 font-medium">Co-Founder & CEO</p>
+                        </div>
+                        <div class="space-y-3">
+                            <img class="founder-img mx-auto rounded-full shadow-md" src="https://i.postimg.cc/KjWTtQwR/Screenshot-2025-06-19-at-1-34-43-PM.png" alt="Photo of Abiel Berhanu">
+                            <h4 class="text-lg font-bold">Abiel Berhanu</h4>
+                            <p class="text-indigo-600 font-medium">Co-Founder & CTO</p>
+                        </div>
+                        <div class="space-y-3">
+                            <img class="founder-img mx-auto rounded-full shadow-md" src="https://i.postimg.cc/L4x3H3Cd/Screenshot-2025-06-19-at-1-33-27-PM.png" alt="Photo of Steven Di Jorio">
+                            <h4 class="text-lg font-bold">Steven Di Jorio</h4>
+                            <p class="text-indigo-600 font-medium">Co-Founder & CIO</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                init() {
-                    this.renderMovies();
-                    this.addEventListeners();
-                },
+        <!-- Courses Section -->
+        <section id="courses" class="py-20 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900">Our Courses</h2>
+                    <p class="mt-2 text-lg text-gray-600">From beginner basics to advanced development, find the perfect path for you.</p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Course Card 1 -->
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                        <i class="fas fa-rocket text-4xl text-indigo-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Introduction to Python</h3>
+                        <p class="text-gray-600 mb-4 flex-grow">Start your coding journey with one of the world's most popular languages. No experience required!</p>
+                        <a href="#" class="text-indigo-600 font-semibold hover:underline mt-auto">View Syllabus <i class="fas fa-chevron-right ml-1 text-sm"></i></a>
+                    </div>
+                    <!-- Course Card 2 -->
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                        <i class="fab fa-js-square text-4xl text-yellow-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Web Development Fundamentals</h3>
+                        <p class="text-gray-600 mb-4 flex-grow">Learn HTML, CSS, and JavaScript to build beautiful, responsive websites from scratch.</p>
+                        <a href="#" class="text-indigo-600 font-semibold hover:underline mt-auto">View Syllabus <i class="fas fa-chevron-right ml-1 text-sm"></i></a>
+                    </div>
+                    <!-- Course Card 3 -->
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                        <i class="fas fa-database text-4xl text-green-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Data Science with R</h3>
+                        <p class="text-gray-600 mb-4 flex-grow">Dive into the world of data, analytics, and visualization to uncover powerful insights.</p>
+                        <a href="#" class="text-indigo-600 font-semibold hover:underline mt-auto">View Syllabus <i class="fas fa-chevron-right ml-1 text-sm"></i></a>
+                    </div>
+                     <!-- Course Card 4 -->
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                        <i class="fas fa-mobile-alt text-4xl text-sky-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Mobile App Development</h3>
+                        <p class="text-gray-600 mb-4 flex-grow">Create your first mobile app for iOS and Android using cross-platform technologies.</p>
+                        <a href="#" class="text-indigo-600 font-semibold hover:underline mt-auto">View Syllabus <i class="fas fa-chevron-right ml-1 text-sm"></i></a>
+                    </div>
+                    <!-- Course Card 5 -->
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                        <i class="fas fa-brain text-4xl text-purple-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">AI & Machine Learning Basics</h3>
+                        <p class="text-gray-600 mb-4 flex-grow">Explore the fundamentals of artificial intelligence and build your first predictive models.</p>
+                        <a href="#" class="text-indigo-600 font-semibold hover:underline mt-auto">View Syllabus <i class="fas fa-chevron-right ml-1 text-sm"></i></a>
+                    </div>
+                    <!-- Course Card 6 -->
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                        <i class="fas fa-gamepad text-4xl text-red-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Game Development with Unity</h3>
+                        <p class="text-gray-600 mb-4 flex-grow">Learn the principles of game design and bring your own interactive worlds to life.</p>
+                        <a href="#" class="text-indigo-600 font-semibold hover:underline mt-auto">View Syllabus <i class="fas fa-chevron-right ml-1 text-sm"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                renderMovies() {
-                    this.elements.movieGrid.innerHTML = this.movies.map(movie => `
-                        <div class="movie-card bg-gray-900 rounded-lg shadow-lg overflow-hidden flex flex-col">
-                            <img src="${movie.poster}" alt="${movie.title}" class="w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/500x750/1f2937/a78bfa?text=${encodeURIComponent(movie.title)}';">
-                            <div class="p-4 flex flex-col flex-grow">
-                                <h3 class="text-xl font-semibold text-white">${movie.title}</h3>
-                                <div class="text-sm text-gray-400 mt-1 flex-grow">
-                                    <span>${movie.rating}</span> | <span>${movie.duration}</span> | <span>${movie.genre}</span>
-                                </div>
-                                <div class="mt-4">
-                                    <p class="text-gray-300 font-medium mb-2">Showtimes:</p>
-                                    <div class="flex flex-wrap gap-2">
-                                        ${movie.showtimes.map(time => `<button class="showtime-btn border border-violet-400 text-violet-300 py-1 px-3 rounded hover:bg-violet-500 hover:text-white" data-movie-id="${movie.id}" data-showtime="${time}">${time}</button>`).join('')}
-                                    </div>
-                                </div>
+        <!-- Workshops & Events Section -->
+        <section id="events" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900">Workshops & Events</h2>
+                    <p class="mt-2 text-lg text-gray-600">Join our live sessions, hackathons, and guest speaker events.</p>
+                </div>
+                <div class="bg-indigo-50 rounded-xl p-8">
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Event 1 -->
+                        <div class="flex items-start space-x-4">
+                            <div class="bg-indigo-600 text-white rounded-lg p-3 text-center w-20 flex-shrink-0">
+                                <span class="block text-2xl font-bold">25</span>
+                                <span class="block text-sm">JULY</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold">Hack for Good: Community Challenge</h3>
+                                <p class="text-gray-600 text-sm">Online & In-Person</p>
+                                <a href="#" class="text-indigo-600 font-semibold text-sm mt-2 inline-block hover:underline">Register Now &rarr;</a>
                             </div>
                         </div>
-                    `).join('');
-                },
+                        <!-- Event 2 -->
+                        <div class="flex items-start space-x-4">
+                           <div class="bg-indigo-600 text-white rounded-lg p-3 text-center w-20 flex-shrink-0">
+                                <span class="block text-2xl font-bold">10</span>
+                                <span class="block text-sm">AUG</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold">Workshop: Intro to Git & GitHub</h3>
+                                <p class="text-gray-600 text-sm">Online via Zoom</p>
+                                <a href="#" class="text-indigo-600 font-semibold text-sm mt-2 inline-block hover:underline">Register Now &rarr;</a>
+                            </div>
+                        </div>
+                         <!-- Event 3 -->
+                        <div class="flex items-start space-x-4">
+                            <div class="bg-indigo-600 text-white rounded-lg p-3 text-center w-20 flex-shrink-0">
+                                <span class="block text-2xl font-bold">22</span>
+                                <span class="block text-sm">AUG</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold">Speaker Series: AI in Healthcare</h3>
+                                <p class="text-gray-600 text-sm">Fireside Chat with Dr. Eva Rostova</p>
+                                <a href="#" class="text-indigo-600 font-semibold text-sm mt-2 inline-block hover:underline">Register Now &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                renderSeatingChart() {
-                    const rows = 6;
-                    const seatsPerRow = 8;
-                    const seatMapKey = `${this.selectedMovie.id}-${this.selectedShowtime}`;
-                    const currentlySoldSeats = this.soldSeats[seatMapKey] || [];
-                    this.elements.seatMap.innerHTML = ''; 
+        <!-- NEW: Community Hub Section -->
+        <section id="community" class="py-20 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900">Join Our Community Hub</h2>
+                    <p class="mt-2 text-lg text-gray-600">Connect, learn, and grow with fellow learners and mentors.</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8 text-center">
+                    <!-- Feature 1: Forums -->
+                    <div class="bg-white p-8 rounded-xl shadow-md">
+                        <i class="fas fa-comments text-4xl text-indigo-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Discussion Forums</h3>
+                        <p class="text-gray-600 mb-4">Ask questions, share projects, and collaborate with peers on our active forums.</p>
+                        <a href="#" class="text-indigo-600 font-semibold hover:underline">Join the Conversation &rarr;</a>
+                    </div>
+                    <!-- Feature 2: Mentorship -->
+                    <div class="bg-white p-8 rounded-xl shadow-md">
+                        <i class="fas fa-user-friends text-4xl text-green-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Mentor Matching</h3>
+                        <p class="text-gray-600 mb-4">Get paired with an experienced mentor to guide you on your learning journey.</p>
+                        <a href="#" class="text-indigo-600 font-semibold hover:underline">Find a Mentor &rarr;</a>
+                    </div>
+                    <!-- Feature 3: Q&A -->
+                    <div class="bg-white p-8 rounded-xl shadow-md">
+                        <i class="fas fa-question-circle text-4xl text-yellow-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Live Q&A Sessions</h3>
+                        <p class="text-gray-600 mb-4">Join weekly live sessions with instructors and industry experts to get your questions answered.</p>
+                        <a href="#" class="text-indigo-600 font-semibold hover:underline">View Schedule &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                    for (let i = 0; i < rows; i++) {
-                        const row = document.createElement('div');
-                        row.className = 'seat-row flex';
-                        for (let j = 0; j < seatsPerRow; j++) {
-                            const seat = document.createElement('div');
-                            const seatId = `${String.fromCharCode(65 + i)}${j + 1}`;
-                            seat.className = 'seat';
-                            seat.dataset.seatId = seatId;
-                            if (currentlySoldSeats.includes(seatId)) {
-                                seat.classList.add('sold');
-                            }
-                            row.appendChild(seat);
-                        }
-                        this.elements.seatMap.appendChild(row);
-                    }
-                },
+        <!-- Resources Section -->
+        <section id="resources" class="py-20 bg-white">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Learning Resources</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto mb-12">Empower your learning with our collection of tutorials, videos, and project showcases.</p>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-gray-50 p-6 rounded-xl text-center hover:shadow-lg transition-shadow">
+                        <i class="fas fa-play-circle text-5xl text-red-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Video Lessons</h3>
+                        <p class="text-gray-600">Bite-sized video tutorials on key coding concepts.</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl text-center hover:shadow-lg transition-shadow">
+                        <i class="fas fa-file-alt text-5xl text-blue-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Downloadable Guides</h3>
+                        <p class="text-gray-600">Cheat sheets and guides to keep on hand.</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl text-center hover:shadow-lg transition-shadow">
+                        <i class="fas fa-lightbulb text-5xl text-yellow-500 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Project Showcases</h3>
+                        <p class="text-gray-600">Get inspired by projects built by our community.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                addEventListeners() {
-                    this.elements.movieGrid.addEventListener('click', e => {
-                        if (e.target.classList.contains('showtime-btn')) {
-                            const movieId = parseInt(e.target.dataset.movieId);
-                            const showtime = e.target.dataset.showtime;
-                            this.handleShowtimeSelect(movieId, showtime);
-                        }
-                    });
+        <!-- Blog Section -->
+        <section id="blog" class="py-20 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900">From Our Blog</h2>
+                    <p class="mt-2 text-lg text-gray-600">Insights, news, and stories from the world of STEM.</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                        <img src="https://placehold.co/400x250/C7D2FE/4F46E5?text=Learner+Success" class="w-full h-48 object-cover" alt="Blog post image">
+                        <div class="p-6">
+                            <p class="text-sm text-indigo-600 font-semibold mb-1">Success Stories</p>
+                            <h3 class="text-xl font-bold mb-3">From Novice to NASA: A Learner's Journey</h3>
+                            <a href="#" class="text-gray-600 hover:text-indigo-600">Read More &rarr;</a>
+                        </div>
+                    </div>
+                     <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                        <img src="https://placehold.co/400x250/FEF3C7/D97706?text=Coding+Tips" class="w-full h-48 object-cover" alt="Blog post image">
+                        <div class="p-6">
+                            <p class="text-sm text-yellow-600 font-semibold mb-1">Best Practices</p>
+                            <h3 class="text-xl font-bold mb-3">5 Tips for Writing Clean, Readable Code</h3>
+                            <a href="#" class="text-gray-600 hover:text-indigo-600">Read More &rarr;</a>
+                        </div>
+                    </div>
+                     <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                        <img src="https://placehold.co/400x250/D1FAE5/059669?text=STEM+News" class="w-full h-48 object-cover" alt="Blog post image">
+                        <div class="p-6">
+                            <p class="text-sm text-green-600 font-semibold mb-1">Industry News</p>
+                            <h3 class="text-xl font-bold mb-3">The Future of Quantum Computing Explained</h3>
+                            <a href="#" class="text-gray-600 hover:text-indigo-600">Read More &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- NEW: Testimonials Section -->
+        <section id="testimonials" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900">What Our Learners Say</h2>
+                    <p class="mt-2 text-lg text-gray-600">Real stories from our amazing community.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="testimonial-card p-6 rounded-lg">
+                        <p class="text-gray-700 italic mb-4">"AskUs STEM Pathways changed my life. I went from having zero coding knowledge to landing my first tech job in just six months. The mentorship program was invaluable!"</p>
+                        <div class="flex items-center">
+                            <img class="w-12 h-12 rounded-full mr-4" src="https://placehold.co/48x48/BFDBFE/1E3A8A?text=SK" alt="Learner photo">
+                            <div>
+                                <p class="font-bold text-gray-900">Sarah Kim</p>
+                                <p class="text-sm text-gray-600">Web Developer at TechCorp</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card p-6 rounded-lg">
+                        <p class="text-gray-700 italic mb-4">"As a high school student, I never thought I could build a real app. The 'Mobile App Development' course was engaging, and the instructors were incredibly supportive."</p>
+                         <div class="flex items-center">
+                            <img class="w-12 h-12 rounded-full mr-4" src="https://placehold.co/48x48/BFDBFE/1E3A8A?text=DJ" alt="Learner photo">
+                            <div>
+                                <p class="font-bold text-gray-900">David Jones</p>
+                                <p class="text-sm text-gray-600">11th Grade Student</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                    this.elements.seatMap.addEventListener('click', e => {
-                        const seatEl = e.target.closest('.seat');
-                        if (seatEl && !seatEl.classList.contains('sold')) {
-                            this.handleSeatSelect(seatEl);
-                        }
-                    });
+        <!-- Volunteer & Donate Section -->
+        <section id="volunteer" class="py-20 bg-indigo-700 text-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold">Make a Difference</h2>
+                    <p class="mt-2 text-lg text-indigo-200">Your support fuels our mission.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-16 items-start">
+                    <!-- Volunteer -->
+                    <div class="bg-indigo-600 p-8 rounded-xl text-center md:text-left">
+                        <h3 class="text-2xl font-bold mb-4">Become a Volunteer</h3>
+                        <p class="text-indigo-200 mb-6">Share your expertise and passion. We're looking for:</p>
+                        <ul class="text-indigo-200 space-y-2 mb-8 list-disc list-inside text-left">
+                           <li>Course Mentors & Tutors</li>
+                           <li>Workshop Facilitators</li>
+                           <li>Event Organizers</li>
+                           <li>Content Creators (Blog & Video)</li>
+                        </ul>
+                        <a href="#" class="bg-white text-indigo-600 px-8 py-3 rounded-full font-bold text-lg cta-button inline-block">Volunteer Now</a>
+                    </div>
+                    <!-- Donate -->
+                    <div id="donate" class="bg-indigo-600 p-8 rounded-xl text-center md:text-left">
+                        <h3 class="text-2xl font-bold mb-4">Support Our Mission</h3>
+                        <p class="text-indigo-200 mb-6">Your donation helps us provide free and low-cost coding education, maintain our platform, and reach more underserved communities. Every contribution counts.</p>
+                        <div class="bg-indigo-800/50 rounded-lg p-4 text-center mb-6">
+                           <p class="font-semibold text-white"><i class="fab fa-microsoft mr-2"></i>Double your impact! Microsoft matches all donations made to AskUs STEM Pathways.</p>
+                        </div>
+                         <div class="flex justify-center md:justify-start space-x-4 mb-8">
+                            <button class="bg-indigo-800 hover:bg-white hover:text-indigo-700 font-bold p-4 rounded-lg cta-button">$25</button>
+                            <button class="bg-indigo-800 hover:bg-white hover:text-indigo-700 font-bold p-4 rounded-lg cta-button">$50</button>
+                            <button class="bg-white text-indigo-700 font-bold p-4 rounded-lg cta-button">$100</button>
+                            <button class="bg-indigo-800 hover:bg-white hover:text-indigo-700 font-bold p-4 rounded-lg cta-button">Other</button>
+                        </div>
+                        <a href="#" class="bg-yellow-400 text-gray-900 px-8 py-3 rounded-full font-bold text-lg cta-button inline-block">Donate Securely</a>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                    this.elements.backToMoviesBtn.addEventListener('click', () => this.showMovieSelection());
-                    this.elements.bookNowBtn.addEventListener('click', () => this.handleBooking());
-                    this.elements.closeModalBtn.addEventListener('click', () => this.closeConfirmationModal());
-                },
+        <!-- Contact Section -->
+        <section id="contact" class="py-20 bg-gray-50">
+            <div class="container mx-auto px-6">
+                 <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900">Get in Touch</h2>
+                    <p class="mt-2 text-lg text-gray-600">Have questions? We'd love to hear from you.</p>
+                </div>
+                <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+                    <form action="#" method="POST">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                <input type="text" name="name" id="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required>
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <input type="email" name="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                             <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                             <input type="text" name="subject" id="subject" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div class="mb-6">
+                             <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                             <textarea name="message" id="message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required></textarea>
+                        </div>
+                        <div>
+                            <button type="submit" class="w-full bg-indigo-600 text-white px-8 py-3 rounded-full font-bold text-lg cta-button">Send Message</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
 
-                handleShowtimeSelect(movieId, showtime) {
-                    this.selectedMovie = this.movies.find(m => m.id === movieId);
-                    this.selectedShowtime = showtime;
-                    this.selectedSeats = []; 
-                    
-                    this.elements.selectedMovieTitle.textContent = this.selectedMovie.title;
-                    this.elements.selectedMovieShowtime.textContent = `Showtime: ${this.selectedShowtime}`;
-                    this.elements.summaryMovieTitle.textContent = this.selectedMovie.title;
-                    this.elements.summaryMovieShowtime.textContent = `at ${this.selectedShowtime}`;
-                    
-                    this.renderSeatingChart();
-                    this.updateBookingSummary();
-                    this.showBookingSection();
-                },
-                
-                handleSeatSelect(seatEl) {
-                    const seatId = seatEl.dataset.seatId;
-                    const seatIndex = this.selectedSeats.indexOf(seatId);
+    </main>
 
-                    if (seatIndex > -1) {
-                        this.selectedSeats.splice(seatIndex, 1);
-                        seatEl.classList.remove('selected');
-                    } else {
-                        this.selectedSeats.push(seatId);
-                        seatEl.classList.add('selected');
-                    }
-                    this.updateBookingSummary();
-                },
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white">
+        <div class="container mx-auto px-6 py-12">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">AskUs STEM Pathways</h3>
+                    <p class="text-gray-400">Empowering the next generation of innovators through accessible coding education.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#about" class="text-gray-400 hover:text-white">About Us</a></li>
+                        <li><a href="#courses" class="text-gray-400 hover:text-white">Courses</a></li>
+                        <li><a href="#blog" class="text-gray-400 hover:text-white">Blog</a></li>
+                        <li><a href="#contact" class="text-gray-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Get Involved</h4>
+                     <ul class="space-y-2">
+                        <li><a href="#volunteer" class="text-gray-400 hover:text-white">Volunteer</a></li>
+                        <li><a href="#donate" class="text-gray-400 hover:text-white">Donate</a></li>
+                        <li><a href="#events" class="text-gray-400 hover:text-white">Events</a></li>
+                         <li><a href="#community" class="text-gray-400 hover:text-white">Community Hub</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Connect With Us</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" aria-label="Twitter" class="text-gray-400 hover:text-white text-2xl"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Facebook" class="text-gray-400 hover:text-white text-2xl"><i class="fab fa-facebook"></i></a>
+                        <a href="#" aria-label="LinkedIn" class="text-gray-400 hover:text-white text-2xl"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" aria-label="GitHub" class="text-gray-400 hover:text-white text-2xl"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-12 border-t border-gray-800 pt-6 text-center text-gray-500 text-sm">
+                <p>&copy; 2024 AskUs STEM Pathways. All Rights Reserved.</p>
+                 <p class="mt-2">
+                    <a href="#" class="hover:text-white">Privacy Policy</a> | 
+                    <a href="#" class="hover:text-white">Terms of Service</a> |
+                    <a href="#" class="hover:text-white">Accessibility Statement</a>
+                </p>
+            </div>
+        </div>
+    </footer>
 
-                handleBooking() {
-                    if (this.selectedSeats.length === 0) return;
-                    
-                    const seatMapKey = `${this.selectedMovie.id}-${this.selectedShowtime}`;
-                    if (!this.soldSeats[seatMapKey]) {
-                        this.soldSeats[seatMapKey] = [];
-                    }
-                    this.soldSeats[seatMapKey].push(...this.selectedSeats);
 
-                    this.elements.confMovie.textContent = this.selectedMovie.title;
-                    this.elements.confShowtime.textContent = this.selectedShowtime;
-                    this.elements.confSeats.textContent = this.selectedSeats.join(', ');
-                    this.elements.confTotal.textContent = `$${this.selectedSeats.length * this.selectedMovie.price}`;
-                    
-                    this.elements.confirmationModal.classList.remove('hidden');
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
 
-                    this.selectedSeats.forEach(seatId => {
-                        const seatEl = this.elements.seatMap.querySelector(`[data-seat-id="${seatId}"]`);
-                        if (seatEl) {
-                            seatEl.classList.remove('selected');
-                            seatEl.classList.add('sold');
-                        }
-                    });
-
-                    this.selectedSeats = [];
-                    this.updateBookingSummary();
-                },
-
-                updateBookingSummary() {
-                    if (this.selectedSeats.length > 0) {
-                        this.elements.selectedSeatsList.textContent = this.selectedSeats.sort().join(', ');
-                        this.elements.bookNowBtn.disabled = false;
-                    } else {
-                        this.elements.selectedSeatsList.textContent = 'None';
-                        this.elements.bookNowBtn.disabled = true;
-                    }
-                    const total = this.selectedSeats.length * this.selectedMovie.price;
-                    this.elements.totalPrice.textContent = `$${total}`;
-                },
-
-                showMovieSelection() {
-                    this.elements.movieSelectionSection.classList.remove('hidden');
-                    this.elements.bookingSection.classList.add('hidden');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                },
-
-                showBookingSection() {
-                    this.elements.movieSelectionSection.classList.add('hidden');
-                    this.elements.bookingSection.classList.remove('hidden');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                },
-                
-                closeConfirmationModal() {
-                    this.elements.confirmationModal.classList.add('hidden');
-                }
-            };
-
-            app.init();
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
         });
+
+        // Close mobile menu when a link is clicked
+        const mobileMenuLinks = mobileMenu.getElementsByTagName('a');
+        for (let link of mobileMenuLinks) {
+            link.addEventListener('click', () => {
+                // Add a small delay to ensure navigation happens before menu closes
+                setTimeout(() => {
+                   mobileMenu.classList.add('hidden');
+                }, 100);
+            });
+        }
+
+        // Smooth scrolling for all anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetElement = document.querySelector(this.getAttribute('href'));
+                if(targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
     </script>
 </body>
 </html>
